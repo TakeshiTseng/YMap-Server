@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <style type="text/css">
+            html { height: 100% }
+            body { height: 100%; margin: 0; padding: 0 }
+            #map_canvas { height: 100% }
+        </style>
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyD1ceVv330HsYCC-D26AXdamG2clkmF5bo&sensor=true" ></script>
+        <script type="text/javascript" src='http://code.jquery.com/jquery-1.10.2.min.js'></script>
+
+
+        <script type="text/javascript">
+            var map;
+
+            function initialize() {
+                var mapOptions = {
+                    zoom: 18,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
+                map = new google.maps.Map(document.getElementById('map_canvas'),
+                        mapOptions);
+
+                // Try HTML5 geolocation
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        $.get('http://ym.takeshi.tw:8080/search', {'long': position.coords.longitude, 'lat': position.coords.latitude, 'radius': 100}, function(data) {
+                            console.log(data);
+                            for (var k in data) {
+                                var name = data[k].name;
+                                var desc = data[k].description;
+                                var lng = data[k].longitude;
+                                var lat = data[k].latitude;
+                                var pos = new google.maps.LatLng(lat, lng);
+
+                                
+
+                                var marker = new google.maps.Marker({
+                                  position: pos,
+                                  map: map,
+                                  title: name
+                                });
+
+                                marker.info = new google.maps.InfoWindow({
+                                    content: '<h2>'+name+'</h2>'+desc
+                                });
+                                
+                                google.maps.event.addListener(marker, 'click', function() {
+                                  marker.info.open(map,marker);
+                                });
+
+                            }
+                        }, 'json');
+                        var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+                        
+                        map.setCenter(pos);
+                    }, function() {
+                        handleNoGeolocation(true);
+                    });
+                } else {
+                    // Browser doesn't support Geolocation
+                    handleNoGeolocation(false);
+                }
+            }
+
+            function handleNoGeolocation(errorFlag) {
+                if (errorFlag) {
+                    var content = 'Error: The Geolocation service failed.';
+                } else {
+                    var content = 'Error: Your browser doesn\'t support geolocation.';
+                }
+
+                var options = {
+                    map: map,
+                    position: new google.maps.LatLng(60, 105),
+                    content: content
+                };
+
+                var infowindow = new google.maps.InfoWindow(options);
+                map.setCenter(options.position);
+            }
+
+        </script>
+    </head>
+    <body onload="initialize()">
+        <div id="map_canvas" style="width:100%; height:100%"></div>
+    </body>
+</html>
