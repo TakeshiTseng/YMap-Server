@@ -14,7 +14,7 @@ db.once('open', function(){
 });
 
 
-var PlacesSchema = mongoose.Schema({name:String,descriptions:Array, type:Number, longitude:Number, latitude:Number });
+var PlacesSchema = mongoose.Schema({name:String, descriptions:Array, type:Number, longitude:Number, latitude:Number });
 var Places = mongoose.model('places', PlacesSchema);
 
 /*
@@ -98,19 +98,23 @@ app.get('/add_description', function(req, res){
 	var author_id = req.param('author_id');
 	var star = req.param('star');
 
-	var description = {'author_id':author_id, 'description':description, 'photoid': photoid};
-
-	Places.update({'_id':"ObjectId('" + id +"')"}, {'descriptions': {$addtoset: description}}, function(err, desc){
+	var desc = {'author_id':author_id, 'description':description, 'photoid': photoid};
+	
+	Places.update({ '_id':id }, { $addToSet:{'descriptions':desc } }, 
+		function(err, data){
 		if(err){
 			var result = {'type':'upload', 'msg':'上傳錯誤！', 'error':true};
+			console.log(err);
 			res.send(result);
 			res.end();
-		} else if(desc){
+		} else {
 			var result = {'type':'upload', 'msg':'OK', 'error':false };
 			res.send(result);
 			res.end();
 		}
 	});
+	
+
 });
 
 app.post('/upload_photo', function(req, res){
